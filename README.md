@@ -1,7 +1,7 @@
 # Webex Teams Bot Guide
 
-From the ground up create a fundamentals Webex Teams Bot that can GET and POST messages in a Webex room using Python.
----
+Objective of this guide is to build from the ground up a fundamentals Webex Teams Bot that can GET and POST messages in a Webex room using Python. With the basics you can then expand and add further features (Tell you a joke, whats the weather etc).
+
 ## Requirements
 
 * Postman
@@ -282,7 +282,7 @@ If we find a match then our conditional if statement returns **true** and it wil
     if message_contains(message, ['hello', 'hi', 'greetings', 'gday']):
         post_message(payload,'Hello Human', headers)
 ```
----
+
 ### Chatbot (GET and POST)
 As we built in our ```main.py``` file, have 3 functions to build in our ```chatbot.py``` file:
 1. Get the message text
@@ -376,11 +376,11 @@ def post_message(payload, message, headers):
     payload['text'] = message
     requests.post('https://api.ciscospark.com/v1/messages/',headers=headers,json=payload)
 ```
----
+
 ### Final Testing
 ```@mention``` your bot and say a greeting (hi, hello etc). You should now see it post a message back!
 
----
+
 ## Next Steps
 This should have given you the basics to creating your own chatbot using Webex Teams and Python. Why not try creating your own logic to handle if a user asks for a joke or to check if their network devices are online!
 
@@ -388,6 +388,8 @@ Here is two resources to help you out:
 * Dad jokes api: https://icanhazdadjoke.com/api
 * Cisco Meraki api: https://developer.cisco.com/meraki/api/#/rest
 
----
+## Need Help
+Check the Example folder for the full code.
+
 ## License
 MIT
