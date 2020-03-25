@@ -6,7 +6,7 @@ From the ground up create a fundamentals Webex Teams Bot that can GET and POST m
 - [Requirements](#requirements)
 - [Making Calls with Postman](#making-calls-with-postman)
 - [Python - Making A Request](#python---making-a-request)
-- [Chatbot (GET and POST)](#chatbot-(get-and-post))
+- [Chatbot - GET and POST](#chatbot---get-and-post)
 - [Final Testing](#final-testing)
 - [Next Steps](#next-steps)
 - [Help](#help)
@@ -293,7 +293,7 @@ If we find a match then our conditional if statement returns **true** and it wil
         post_message(payload,'Hello Human', headers)
 ```
 
-## Chatbot (GET and POST)
+## Chatbot - GET and POST
 As we built in our ```main.py``` file, have 3 functions to build in our ```chatbot.py``` file:
 1. Get the message text
 2. Check if message contains a greeting
