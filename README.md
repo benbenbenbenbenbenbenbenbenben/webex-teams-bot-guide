@@ -1,6 +1,16 @@
 # Webex Teams Bot Guide
 
-Objective of this guide is to build from the ground up a fundamentals Webex Teams Bot that can GET and POST messages in a Webex room using Python. With the basics you can then expand and add further features (Tell you a joke, whats the weather etc).
+From the ground up create a fundamentals Webex Teams Bot that can GET and POST messages in a Webex room using Python.
+
+## Table of Contents
+- [Requirements](#requirements)
+- [Making Calls with Postman](#making-calls-with-postman)
+- [Python - Making A Request](#python---making-a-request)
+- [Chatbot (GET and POST)](#chatbot-(get-and-post))
+- [Final Testing](#final-testing)
+- [Next Steps](#next-steps)
+- [Help](#help)
+
 
 ## Requirements
 
@@ -139,7 +149,7 @@ We could also do this step in our code, however as it is only required once, it 
 1. In your Webex teams bot room send it a message ```@mention Hello```. Check your terminal window running your app.py script to see it logged the received webhook.
 2. If you read through the log you may note that it does not list the Text data we sent, so we will need to go back to our app and add some additional code to get the message text.
 
-## Python Making A Request
+## Python - Making A Request
 
 To see what a python request code looks like you can go to Postman, select again the Create a Message API and click code on the right hand side. Select Python Requests from the various languages. This will give you a code snippet that you could just copy paste into your code. We are going to make our own.
 
@@ -170,7 +180,7 @@ def index():
 if __name__ == "__main__":
     app.run(debug=True)
 ```
----
+
 ### Creating Functions
 
 In this section we will setup our main.py file to handle the webhook data and respond back to the user if they said a greeting. 
@@ -283,7 +293,7 @@ If we find a match then our conditional if statement returns **true** and it wil
         post_message(payload,'Hello Human', headers)
 ```
 
-### Chatbot (GET and POST)
+## Chatbot (GET and POST)
 As we built in our ```main.py``` file, have 3 functions to build in our ```chatbot.py``` file:
 1. Get the message text
 2. Check if message contains a greeting
@@ -377,7 +387,7 @@ def post_message(payload, message, headers):
     requests.post('https://api.ciscospark.com/v1/messages/',headers=headers,json=payload)
 ```
 
-### Final Testing
+## Final Testing
 ```@mention``` your bot and say a greeting (hi, hello etc). You should now see it post a message back!
 
 
@@ -388,7 +398,7 @@ Here is two resources to help you out:
 * Dad jokes api: https://icanhazdadjoke.com/api
 * Cisco Meraki api: https://developer.cisco.com/meraki/api/#/rest
 
-## Need Help
+## Help
 Check the Example folder for the full code.
 
 ## License
