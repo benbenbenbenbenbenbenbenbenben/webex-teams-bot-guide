@@ -69,8 +69,8 @@ In a code editor (Visual Studio etc) create 3 new python files (see table below)
 ### Python Web Server
 Flask is a web framework that allows us to quickly build web applications. As we installed it with pip we just need to import it into our code.
 
-Route binds a function to a URL, in our case we are listening at the root our app ```app.route("/")``` and returns a simple message if GET is used otherwise if POST it will print the posted data (webhook data)
-1. Add the following code to app.py and save the file
+Route binds a function to a URL, in our case we are listening at the root of our app ```app.route("/")``` and returns a simple message if GET is used otherwise if POST it will print the posted data (webhook data)
+1. Add the following code to ```app.py``` and save the file:
 ```python
 from flask import Flask, request
  
@@ -87,37 +87,42 @@ if __name__ == "__main__":
     app.run(debug=True)
 ```
 3. Ensure your virtual environment is active and run:
-```python
+```bash
 $ python3 app.py
-4. Check the server is running http://127.0.0.1:5000/
 ```
-5. Also check loading your Ngrok Forwarding URL to ensure you see the same content
+4. Check the server is running http://127.0.0.1:5000/
+
+5. Also check loading your ```Ngrok Forwarding URL``` to ensure you see the same content
 
 When you loaded the above URL, you should see that it displayed some text on the webpage. This is because app.route is set for / and when that endpoint is accessed we run our index() function. In this case it checked that the request method when loading the webpage was GET.
 
-Later after we setup our webhooks to listen for messages from Webex Teams, they will use POST to our server which we will forward to a function to handle our logic.
+Later after we setup our webhooks to listen for messages from Webex Teams, they will use POST to our server.
 
-Now that we have our flask web app running we can move on to testing Webex API calls in postman and then come back to integrate the calls into our app.
+Now that we have our flask web app running we can move on to making Webex API calls in Postman and then come back to integrate the calls into our app.
 
 ## Making Calls with Postman
-
-1. Add your Webex Bots Access Token to the Webex Environment in Postman   
+Postman is a great tool for quickly and easily testing APIs. It allows us to see exactly what response we get back from a request so we can then look how we might structure our code.
+1. Add your Webex Bots Access Token to the Webex Environment in Postman 
+![Image of adding Access Token](https://github.com/benbenbenbenbenbenbenbenbenben/webex-teams-bot-guide/blob/master/images/token.png?raw=true)  
 2. From the Webex Teams API Collection select Rooms > List Rooms
+![Image of postman](https://github.com/benbenbenbenbenbenbenbenbenben/webex-teams-bot-guide/blob/master/images/list-rooms.png?raw=true)  
+
 3. Hit send to get back a JSON list of rooms your Bot is assigned to. You should see he is added to at least the 1 space we created earlier. Copy the value of id which will serve as our Room ID to post messages later.
+
 4. Send your own message
-    1. select Messages > Create a Message (plain text)
+    1. Select Messages > Create a Message (plain text)
     2. Click Body and change {{_room}} to the room id from step 3
+    ![Image of postman](https://github.com/benbenbenbenbenbenbenbenbenben/webex-teams-bot-guide/blob/master/images/post-message.png?raw=true) 
     3. Hit send and you should see the text appear in your Webex Teams
 
-### Setup Webhooks
-Setup Webhooks 
+### Setup Webhooks 
 This is required to listen for events in webex teams so we can have our code perform different functions. Read more about Webex Webhooks here:
 https://developer.webex.com/docs/api/guides/webhooks
 
 We could also do this step in our code, however as it is only required once, it is easier to do so from Postman.
 
 1. Select Webhooks > Create a webhook
-    1. lick Body and update JSON replacing Ngrok in targetUrl with your Ngrok Forwarding URL and hit send to create our first webhook
+    1. Click Body and update JSON replacing Ngrok in targetUrl with your ```Ngrok Forwarding URL``` and hit send to create our first webhook
 ```json
     {
       "name": "Listen for Messages Created Webhook",
@@ -126,7 +131,7 @@ We could also do this step in our code, however as it is only required once, it 
       "targetUrl": "Ngrok"
     }
 ```
-2. In your Webex teams bot room send it a message (@mybot Hello). Check your terminal window running your app.py script to see it log the received webhook.
+2. In your Webex teams bot room send it a message ```@mention Hello```. Check your terminal window running your app.py script to see it log the received webhook.
 3. If you read through the log you may note that it does not list the Text data we sent, so we will need to go back to our app and add some additional code to get the message text.
 
 ## Python Making A Request
@@ -195,10 +200,10 @@ def handler(request):
     return 'success' 
 ```
 
-We have 3 functions to build in this file:
-1. Check if the webhook alert is triggered by the Bot
-2. Extract the message text from webhook
-3. Post a message back to the user if they said a greeting
+We have 3 conditions to build in this file:
+1. Check ```if``` the webhook alert is triggered by the Bot
+2. Extract the message text ```if``` webhook resource is a message
+3. Post a message back to the user ```if``` they said a greeting
 
 #### 1. Ignore Bots Messages
 Based on the webhook json data we have how do we check to see if it is from our Bot? Lets take a look at the data:
@@ -233,15 +238,24 @@ From this sample you can see the JSON object has a resource key with the value o
     if webhook_event['resource'] == 'messages' and webhook_event['data']['personEmail'] == bot_email:
         return 'success'
 ```
+
 #### 2. Extract the message text
-As you seen from the above json data there was no text from the user so we will need to get that. Lets look at the webex api docs to see what we need to get the text:
+As you saw from the above json data there was no text from the user so we will need to get that. Lets look at the webex api docs to see what we need to get the text:
 
 > Get Message Details: Shows details for a message, by message ID.
 Specify the message ID in the messageId parameter in the URI.
 https://developer.webex.com/docs/api/v1/messages/get-message-details
 
-We can use the value of id in the webhook data object to get the message details. As this is a chatbot specific task we will create a function here that calls another function in chatbot.py to make the api get request.
+We can use the value of id in the webhook data object to get the message details. As this is a chatbot specific task we will create a function here that calls another function in ```chatbot.py``` to make the api get request.
 
+To make the api call we also need to authenticate with the ```authorization header``` using our ```Bot Token```. Add this just after you print the webhook data:
+```py
+    headers = {
+        'authorization': f'Bearer {bot_token}' 
+    }
+```
+
+Our function which we pass two params (webhook data and headers), we will assign the returned value to message variable and then print the message text to the console:
 ```py
     # Get Message Text From Webhook Alert
     if webhook_event['resource'] == 'messages':
@@ -250,7 +264,11 @@ We can use the value of id in the webhook data object to get the message details
 ```
 
 #### 3. Post a message back to the user
-Now that we have setup our 
+Now that we have recevied the text from the user we can check if it contains any keywords like a greeting. If it matches a greeting then we want to respond. Feel free to customise the greetings by adding your own in the array ```['greeting']```.  
+
+We will have our ```chatbot.py``` file run the logic for checking if the users message (obtained from step 2 above) matches any keyword in the array.
+
+If we find a match then our conditional if statement returns true and it will proceed to post a message to the Webex room. For this again we will use ```chatbot.py```, passing the payload which contains the room id, the text we want to respond and our headers:
 
 ```py
     # Respond To Users Messages
@@ -259,7 +277,7 @@ Now that we have setup our
 ```
 
 ### Chatbot (GET and POST)
-As we built in our main.py file, have 3 functions to build in this file:
+As we built in our ```main.py``` file, have 3 functions to build in our ```chatbot.py``` file:
 1. Get the message text
 2. Check if message contains a greeting
 3. Post message to teams
@@ -278,14 +296,24 @@ import requests
 
 ```
 #### 1. Get Message
+The function will make an api call to webex teams using a get request. Once this is received back we convert to json and assign this to the response varaiable and return the text value from the response object.. 
+
 We are accepting two arguments, the webhook event data and our headers.
 
-To determe the correct URL, we can check the docs:
+>To determe the correct URL, we can check the docs:
 https://developer.webex.com/docs/api/v1/messages/get-message-details
 
-The function will make an api call to webex teams using a get request. Once this is received back we convert to json and assign this to the response varaiable. 
+So to get the message details we need to add the ```id``` to the url: https://api.ciscospark.com/v1/messages/. 
+If we reference back to our json data the id value is stored in 
+```json
+"data":{ "id":"Y2lzY29zc..."}
+```
+We can append the url string like so: 
+```py 
+f'https://api.ciscospark.com/v1/messages/{event["data"]["id"]}
+```
 
-Lastly we return the text value from the response object.
+Putting this all together, our function will be:
 
 ```py
 def get_message(event, headers):
@@ -311,12 +339,14 @@ This functions requires 3 arguments; payload, message and headers.
 
 Payload contains our room_id set already in main.py when the webhook was received. We will assign the message (which contains the text we want to send) to 'markdown' which will be added in our payload. 
 
-Very much like the get request earlier we can check the doc to see the URL we need to hit:
+>Very much like the get request earlier we can check the doc to see the URL we need to hit:
 https://developer.webex.com/docs/api/v1/messages/create-a-message
 
 Instead of using ```data=json.dumps(payload)``` we can pass the payload to the ```json``` parameter in the request which will encode it automatically for us.
 
 There is no need for this function to return anything back.
+
+Our function will be:
 
 ```py
 def post_message(payload, message, headers):
@@ -324,7 +354,7 @@ def post_message(payload, message, headers):
     requests.post('https://api.ciscospark.com/v1/messages/',headers=headers,json=payload)
 ```
 
-#### Test
+### Final Testing
 ```@mention``` your bot and say a greeting (hi, hello etc). You should now see it post a message back!
 
 ## Next Steps
