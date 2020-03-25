@@ -1,7 +1,7 @@
 # Webex Teams Bot Guide
 
 From the ground up create a fundamentals Webex Teams Bot that can GET and POST messages in a Webex room using Python.
-
+---
 ## Requirements
 
 * Postman
@@ -24,7 +24,7 @@ https://github.com/CiscoDevNet/postman-webex#teams-api
     2. Copy the generated Access Token (store somewhere safe for later)
 3. Add your Bot to a Webex Teams Space
     1. In Webex Teams click the + button and create a space
-    2. Give your space a name and add your Bot (i.e. mybot@webex.bot)
+    2. Give your space a name and add your Bot (i.e. yourbot@webex.bot)
     3. Click Create
     4. Say “Hello” if you want :)
 
@@ -82,6 +82,7 @@ def index():
       return '<h1>Hello from Webhook Listener App!</h1>'
    if request.method == 'POST':
       print(request.get_json())
+      return 'Success'
 
 if __name__ == "__main__":
     app.run(debug=True)
@@ -90,11 +91,12 @@ if __name__ == "__main__":
 ```bash
 $ python3 app.py
 ```
-4. Check the server is running http://127.0.0.1:5000/
+#### Test
+1. Check the server is running http://127.0.0.1:5000/
 
-5. Also check loading your ```Ngrok Forwarding URL``` to ensure you see the same content
+2. Also check loading your ```Ngrok Forwarding URL``` to ensure you see the same content
 
-When you loaded the above URL, you should see that it displayed some text on the webpage. This is because app.route is set for / and when that endpoint is accessed we run our index() function. In this case it checked that the request method when loading the webpage was GET.
+When you loaded the above URL, you should see that it displayed some text on the webpage. This is because ```app.route``` is set for ```/``` and when that endpoint is accessed we run our ```index()``` function. In this case it checked that the request method when loading the webpage was GET.
 
 Later after we setup our webhooks to listen for messages from Webex Teams, they will use POST to our server.
 
@@ -107,7 +109,7 @@ Postman is a great tool for quickly and easily testing APIs. It allows us to see
 2. From the Webex Teams API Collection select Rooms > List Rooms
 ![Image of postman](https://github.com/benbenbenbenbenbenbenbenbenben/webex-teams-bot-guide/blob/master/images/list-rooms.png?raw=true)  
 
-3. Hit send to get back a JSON list of rooms your Bot is assigned to. You should see he is added to at least the 1 space we created earlier. Copy the value of id which will serve as our Room ID to post messages later.
+3. Hit send to get back a JSON list of rooms your Bot is assigned to. You should see the Bot is added to at least 1 space we created earlier. Copy the value of id which will serve as our Room ID to post a message.
 
 4. Send your own message
     1. Select Messages > Create a Message (plain text)
@@ -116,7 +118,9 @@ Postman is a great tool for quickly and easily testing APIs. It allows us to see
     3. Hit send and you should see the text appear in your Webex Teams
 
 ### Setup Webhooks 
-This is required to listen for events in webex teams so we can have our code perform different functions. Read more about Webex Webhooks here:
+Webhooks are required to listen for events in webex teams and send them to our server when an event occurs. We can then have our code perform different logic based on what is received. 
+
+>Read more about Webex Webhooks here:
 https://developer.webex.com/docs/api/guides/webhooks
 
 We could also do this step in our code, however as it is only required once, it is easier to do so from Postman.
@@ -131,8 +135,9 @@ We could also do this step in our code, however as it is only required once, it 
       "targetUrl": "Ngrok"
     }
 ```
-2. In your Webex teams bot room send it a message ```@mention Hello```. Check your terminal window running your app.py script to see it log the received webhook.
-3. If you read through the log you may note that it does not list the Text data we sent, so we will need to go back to our app and add some additional code to get the message text.
+#### Test
+1. In your Webex teams bot room send it a message ```@mention Hello```. Check your terminal window running your app.py script to see it logged the received webhook.
+2. If you read through the log you may note that it does not list the Text data we sent, so we will need to go back to our app and add some additional code to get the message text.
 
 ## Python Making A Request
 
@@ -165,7 +170,7 @@ def index():
 if __name__ == "__main__":
     app.run(debug=True)
 ```
-
+---
 ### Creating Functions
 
 In this section we will setup our main.py file to handle the webhook data and respond back to the user if they said a greeting. 
@@ -193,12 +198,14 @@ def handler(request):
 
     # TODO: Ignore Bots Messages
 
-    # TODO: Get Message Text
+    # TODO: Get Message Text From Webhook Alert
 
     # TODO: Respond To Users Messages
 
     return 'success' 
 ```
+#### Test
+1. Again, in your Webex teams bot room send it a message ```@mention Hello```. Check your terminal window running your app.py script to see it logged the received webhook. If so, everything is correct and we can move on.
 
 We have 3 conditions to build in this file:
 1. Check ```if``` the webhook alert is triggered by the Bot
@@ -226,12 +233,12 @@ Based on the webhook json data we have how do we check to see if it is from our 
       "roomId":"Y2lzY29z...",
       "roomType":"group",
       "personId":"Y2lzY2...",
-      "personEmail":"youbot@webex.bot",
+      "personEmail":"yourbot@webex.bot",
       "created":"2020-03-24T13:53:07.584Z"
    }
 }
 ```
-From this sample you can see the JSON object has a resource key with the value of messages and another key called data that has a nested object with personEmail. We can use these two bits to check it was a message and from our bot. 
+From this sample you can see the JSON object has a **resource** key with the value of **messages** and another key called **data** that has a nested object with **personEmail**. We can use these two bits to check it was a message and from our bot. 
 
 ```py
     # Ignore Bots Messages
@@ -246,7 +253,7 @@ As you saw from the above json data there was no text from the user so we will n
 Specify the message ID in the messageId parameter in the URI.
 https://developer.webex.com/docs/api/v1/messages/get-message-details
 
-We can use the value of id in the webhook data object to get the message details. As this is a chatbot specific task we will create a function here that calls another function in ```chatbot.py``` to make the api get request.
+We can use the value of **id** in the webhook **data** object to get the message details. As this is a chatbot specific task we will create a function here that calls another function in ```chatbot.py``` to make the api get request.
 
 To make the api call we also need to authenticate with the ```authorization header``` using our ```Bot Token```. Add this just after you print the webhook data:
 ```py
@@ -268,14 +275,14 @@ Now that we have recevied the text from the user we can check if it contains any
 
 We will have our ```chatbot.py``` file run the logic for checking if the users message (obtained from step 2 above) matches any keyword in the array.
 
-If we find a match then our conditional if statement returns true and it will proceed to post a message to the Webex room. For this again we will use ```chatbot.py```, passing the payload which contains the room id, the text we want to respond and our headers:
+If we find a match then our conditional if statement returns **true** and it will proceed to post a message to the Webex room. For this again we will use ```chatbot.py```, passing the payload which contains the room id, the text we want to respond and our headers:
 
 ```py
     # Respond To Users Messages
     if message_contains(message, ['hello', 'hi', 'greetings', 'gday']):
         post_message(payload,'Hello Human', headers)
 ```
-
+---
 ### Chatbot (GET and POST)
 As we built in our ```main.py``` file, have 3 functions to build in our ```chatbot.py``` file:
 1. Get the message text
@@ -316,6 +323,7 @@ f'https://api.ciscospark.com/v1/messages/{event["data"]["id"]}
 Putting this all together, our function will be:
 
 ```py
+# Get the event (most recent message) that triggered the webhook
 def get_message(event, headers):
     url = f'https://api.ciscospark.com/v1/messages/{event["data"]["id"]}'
     response = requests.get(url, headers=headers).json()
@@ -327,6 +335,7 @@ Again we are accepting two arguments, the text we extracted from the webhook eve
 We convert the text to lower case as 'TEXT' != 'text'. Then loop through each option (greeting) from our options array. If it matches with a word in our message string we return back ```true``` otherwise no match found and returns ```false```.
 
 ```py
+# Check whether message contains one of multiple possible options
 def message_contains(text, options):
     message = text.lower()
     for option in options:
@@ -335,28 +344,43 @@ def message_contains(text, options):
     return False
 ```
 #### 3. Post Message
-This functions requires 3 arguments; payload, message and headers.
+Very much like the get request for a message earlier, we can check the doc to see the URL we need to hit and any other details:
 
-Payload contains our room_id set already in main.py when the webhook was received. We will assign the message (which contains the text we want to send) to 'markdown' which will be added in our payload. 
+>Post a plain text or rich text message, and optionally, a file attachment attachment, to a room. https://developer.webex.com/docs/api/v1/messages/create-a-message
+> It requires a body parameter with several objects.
 
->Very much like the get request earlier we can check the doc to see the URL we need to hit:
-https://developer.webex.com/docs/api/v1/messages/create-a-message
+We are going to use the ```roomId``` recevieved in the webhook to provide a response. An example of the body payload:
+
+```json
+{
+  "roomId": "Y2lzY29zcG..",
+  "text": "Message"
+}
+  ```
+Lets create our payload in ```main.py``` after where we placed headers. It will contain the roomId from the webhook:
+
+```py
+    payload = {'roomId': webhook_event['data']['roomId']}
+```
+Next, back on ```chatbot.py``` we will assign the message (which contains the text we want to send) to 'text' which will be added in our payload. 
 
 Instead of using ```data=json.dumps(payload)``` we can pass the payload to the ```json``` parameter in the request which will encode it automatically for us.
 
-There is no need for this function to return anything back.
+This functions requires 3 arguments; payload, message and headers. There is no need for this function to return anything back.
 
 Our function will be:
 
 ```py
+# Post a message in Webex Teams
 def post_message(payload, message, headers):
-    payload['markdown'] = message
+    payload['text'] = message
     requests.post('https://api.ciscospark.com/v1/messages/',headers=headers,json=payload)
 ```
-
+---
 ### Final Testing
 ```@mention``` your bot and say a greeting (hi, hello etc). You should now see it post a message back!
 
+---
 ## Next Steps
 This should have given you the basics to creating your own chatbot using Webex Teams and Python. Why not try creating your own logic to handle if a user asks for a joke or to check if their network devices are online!
 
@@ -364,8 +388,6 @@ Here is two resources to help you out:
 * Dad jokes api: https://icanhazdadjoke.com/api
 * Cisco Meraki api: https://developer.cisco.com/meraki/api/#/rest
 
-
+---
 ## License
 MIT
-
-
